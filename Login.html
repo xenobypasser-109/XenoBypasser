@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noir Data Stream | Secure Access</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=Space+Mono&display=swap');
+
+        :root {
+            --primary-glow: rgba(255, 255, 255, 0.15);
+            --accent-white: #ffffff;
+            --terminal-gray: rgba(255, 255, 255, 0.4);
+            --bg-deep: #050505;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            cursor: none !important;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            perspective: 1200px; 
+        }
+
+        /* --- BACKGROUND LAYERS --- */
+        #binary-canvas {
+            position: fixed; top: 0; left: 0; z-index: 0;
+        }
+
+        /* --- CUSTOM CURSOR --- */
+        #custom-cursor {
+            position: fixed;
+            width: 8px; height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 999999; 
+            box-shadow: 0 0 15px #fff;
+            transform: translate(-50%, -50%);
+            left: -100px; top: -100px;
+            transition: width 0.2s, height 0.2s, background 0.2s;
+        }
+
+        .cursor-hover {
+            width: 24px !important;
+            height: 24px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid #fff;
+        }
+
+        /* --- 3D WRAPPER & GLASS CARD --- */
+        .wrapper {
+            position: relative; 
+            width: 400px; 
+            min-height: 580px;
+            border-radius: 20px; 
+            z-index: 10;
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 
+                        inset 0 1px 1px rgba(255,255,255,0.1);
+            overflow: hidden;
+            opacity: 0; /* For sequential fade-in */
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        .wrapper::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(15,15,15,0.98) 0%, rgba(5,5,5,1) 100%);
+            backdrop-filter: blur(25px);
+            border-radius: 19px;
+            z-index: -1;
+        }
+
+        /* Animated Reflection */
+        .card-reflection {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--x) var(--y), rgba(255,255,255,0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .form-box { 
+            position: relative; 
+            z-index: 20; 
+            padding: 40px; 
+            color: #fff; 
+            transform: translateZ(60px); 
+        }
+
+        /* --- PRODUCT IDENTITY --- */
+        .identity-area {
+            text-align: center;
+            margin-bottom: 25px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.2s forwards;
+        }
+
+        .identity-area i { font-size: 1.2rem; margin-bottom: 8px; display: block; }
+
+        .identity-area h1 {
+            font-size: 10px;
+            letter-spacing: 4px;
+            color: var(--accent-white);
+            margin-bottom: 4px;
+        }
+
+        .identity-area p {
+            font-size: 8px;
+            color: var(--terminal-gray);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* --- SYSTEM STATUS --- */
+        .status-line {
+            font-family: 'Space Mono', monospace;
+            font-size: 8px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            color: var(--terminal-gray);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 10px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.4s forwards;
+        }
+
+        .status-line span i { margin-right: 4px; font-size: 7px; }
+
+        h2 { text-align: center; margin-bottom: 30px; letter-spacing: 6px; font-weight: 500; font-size: 1.2rem; }
+        
+        /* --- INPUTS --- */
+        .input-box { 
+            position: relative; margin: 20px 0; 
+            border-bottom: 1px solid #222; 
+            display: flex; align-items: center; padding: 5px 0;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.6s forwards;
+        }
+
+        .input-box:focus-within {
+            border-bottom-color: #fff;
+            box-shadow: 0 10px 10px -10px rgba(255,255,255,0.1);
+        }
+
+        .input-box i:first-child { 
+            margin-right: 15px; color: #fff; opacity: 0.3; 
+            transition: opacity 0.3s;
+            width: 15px; text-align: center;
+        }
+
+        .input-box:focus-within i:first-child { opacity: 1; }
+
+        .input-box input { 
+            width: 100%; padding: 10px 0; background: transparent; 
+            border: none; outline: none; color: #fff; font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        /* Validation Indicator */
+        .valid-mark {
+            font-size: 10px;
+            color: #4CAF50;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        input:valid ~ .valid-mark { opacity: 0.5; }
+
+        /* --- REMEMBER & UTILS --- */
+        .form-utils {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            font-size: 9px;
+            color: var(--terminal-gray);
+            letter-spacing: 1px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.7s forwards;
+        }
+
+        .remember-wrap { display: flex; align-items: center; gap: 8px; }
+        .remember-wrap input { accent-color: #fff; width: 12px; height: 12px; }
+
+        .toggle-btn {
+            background: transparent; color: var(--terminal-gray); border: 1px solid #222;
+            padding: 3px 8px; font-size: 8px; border-radius: 3px;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .toggle-btn:hover { color: #fff; border-color: #444; }
+
+        /* --- BUTTON --- */
+        .btn { 
+            width: 100%; padding: 14px; border: none; background: #fff; 
+            color: #000; font-weight: 600; margin-top: 10px; letter-spacing: 3px;
+            transform: translateZ(30px);
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 0.8s forwards;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+
+        .btn:hover {
+            background: #eee;
+            transform: translateZ(40px) translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+        }
+
+        /* Loading Animation */
+        .btn.loading { color: transparent; pointer-events: none; }
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px; height: 16px;
+            top: 50%; left: 50%;
+            margin: -8px 0 0 -8px;
+            border: 2px solid #000;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- TRUST & SECONDARY --- */
+        .trust-elements {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 8px;
+            color: var(--terminal-gray);
+            letter-spacing: 1px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 1s forwards;
+        }
+
+        .secondary-actions {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 9px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            opacity: 0;
+            animation: fadeIn 0.8s ease 1.1s forwards;
+        }
+
+        .secondary-actions a {
+            color: var(--terminal-gray);
+            text-decoration: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .secondary-actions a i { font-size: 8px; opacity: 0.6; }
+        .secondary-actions a:hover { color: #fff; }
+        .secondary-actions a:hover i { opacity: 1; transform: translateX(2px); }
+
+        #message { 
+            text-align: center; margin-top: 15px; color: #fff; 
+            font-size: 10px; font-family: 'Space Mono', monospace; min-height: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px) translateZ(60px); }
+            to { opacity: 1; transform: translateY(0) translateZ(60px); }
+        }
+
+        .shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake {
+            0%, 100% { transform: translateZ(60px) translateX(0); }
+            25% { transform: translateZ(60px) translateX(-5px); }
+            75% { transform: translateZ(60px) translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="binary-canvas"></canvas>
+    <div id="custom-cursor"></div>
+
+    <div class="wrapper" id="tilt-card">
+        <div class="card-reflection" id="reflection"></div>
+        <div class="form-box">
+            
+            <div class="identity-area">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h1>SUPXENO SYSTEM</h1>
+                <p>Secure Intelligence Access</p>
+            </div>
+
+            <div class="status-line">
+                <span><i class="fa-solid fa-microchip"></i> ENC: AES-256</span>
+                <span><i class="fa-solid fa-link"></i> SES: SECURE</span>
+                <span><i class="fa-solid fa-bolt"></i> LAT: 24MS</span>
+            </div>
+
+            <h2>LOGIN</h2>
+            
+            <form id="loginForm">
+                <div class="input-box">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="text" id="username" placeholder="EMAIL / USERNAME" required autocomplete="off">
+                    <span class="valid-mark"><i class="fa-solid fa-check"></i></span>
+                </div>
+                
+                <div class="input-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" placeholder="PASSWORD" required>
+                    <button type="button" class="toggle-btn" id="showPass">
+                        <i class="fa-solid fa-eye"></i> <span id="toggleText">SHOW</span>
+                    </button>
+                </div>
+
+                <div class="form-utils">
+                    <label class="remember-wrap">
+                        <input type="checkbox"> REMEMBER SESSION
+                    </label>
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">
+                    <i class="fa-solid fa-right-to-bracket"></i> CONTINUE
+                </button>
+                
+                <div id="message"></div>
+
+                <div class="trust-elements">
+                    • SECURE CONNECTION • DATA ENCRYPTED • PRIVACY PROTECTED
+                </div>
+
+                <div class="secondary-actions">
+                    <a href="javascript:void(0)" id="requestAccessBtn">
+                        <i class="fa-solid fa-key"></i> REQUEST ACCESS
+                    </a>
+                    <a href="javascript:void(0)" id="createAccountBtn">
+                        <i class="fa-solid fa-user-plus"></i> CREATE ACCOUNT
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. TRAIL-BASED BINARY ENGINE (DUAL LAYER) ---
+        const canvas = document.getElementById('binary-canvas');
+        const ctx = canvas.getContext('2d');
+        const fontSize = 14;
+        let columns;
+        let streams = [];
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            columns = Math.ceil(canvas.width / fontSize);
+            streams = [];
+            for (let i = 0; i < columns; i++) {
+                streams[i] = {
+                    x: i * fontSize,
+                    y: Math.random() * -canvas.height,
+                    speed: 1 + Math.random() * 2,
+                    chars: Array.from({length: 20}, () => Math.round(Math.random())),
+                    opacityMultiplier: Math.random() > 0.5 ? 0.2 : 0.05 // Dual layer depth
+                };
+            }
+        }
+
+        initCanvas();
+
+        function drawBinary() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = fontSize + "px monospace";
+
+            streams.forEach(stream => {
+                stream.chars.forEach((char, index) => {
+                    const charY = stream.y - (index * fontSize);
+                    if (charY > 0 && charY < canvas.height) {
+                        const opacity = (1 - (index / stream.chars.length)) * stream.opacityMultiplier;
+                        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+                        ctx.fillText(char, stream.x, charY);
+                    }
+                });
+                stream.y += stream.speed * 0.4;
+                if (stream.y - (stream.chars.length * fontSize) > canvas.height) {
+                    stream.y = 0;
+                }
+            });
+            requestAnimationFrame(drawBinary);
+        }
+        drawBinary();
+
+        // --- 2. 3D TILT + REFLECTION + CURSOR ---
+        const card = document.getElementById('tilt-card');
+        const cursor = document.getElementById("custom-cursor");
+        const reflection = document.getElementById("reflection");
+
+        document.addEventListener("mousemove", (e) => {
+            cursor.style.left = e.clientX + "px";
+            cursor.style.top = e.clientY + "px";
+
+            const xAxis = (window.innerWidth / 2 - e.clientX) / 45;
+            const yAxis = (window.innerHeight / 2 - e.clientY) / 45;
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${-yAxis}deg)`;
+
+            // Update Reflection Position
+            const rect = card.getBoundingClientRect();
+            const relX = e.clientX - rect.left;
+            const relY = e.clientY - rect.top;
+            reflection.style.setProperty('--x', `${relX}px`);
+            reflection.style.setProperty('--y', `${relY}px`);
+        });
+
+        // Cursor Scaling for all interactive elements
+        const refreshInteractiveListeners = () => {
+            document.querySelectorAll('button, input, a, label').forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('cursor-hover'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('cursor-hover'));
+            });
+        };
+        refreshInteractiveListeners();
+
+        // --- 3. PASSWORD TOGGLE ---
+        const passInput = document.getElementById("password");
+        const showBtn = document.getElementById("showPass");
+        const toggleText = document.getElementById("toggleText");
+
+        showBtn.addEventListener("click", () => {
+            const icon = showBtn.querySelector('i');
+            if (passInput.type === "password") {
+                passInput.type = "text"; 
+                toggleText.innerText = "HIDE";
+                icon.className = "fa-solid fa-eye-slash";
+            } else {
+                passInput.type = "password"; 
+                toggleText.innerText = "SHOW";
+                icon.className = "fa-solid fa-eye";
+            }
+        });
+
+        window.addEventListener('resize', initCanvas);
+
+        // --- 4. ACTION HANDLERS ---
+        const msg = document.getElementById('message');
+
+        const systemMessage = (text, type = 'info') => {
+            msg.innerText = `> ${text}`;
+            msg.style.color = type === 'error' ? 'rgba(255,0,0,0.7)' : '#fff';
+            if(type === 'error') {
+                card.classList.add('shake');
+                setTimeout(() => card.classList.remove('shake'), 400);
+            }
+        };
+
+        // Create Account Functionality
+        document.getElementById('createAccountBtn').addEventListener('click', () => {
+            systemMessage("INITIALIZING REGISTRATION PROTOCOL...");
+            setTimeout(() => {
+                systemMessage("EXTERNAL_REDIRECT: NO_SIGNUP_SERVER");
+            }, 1000);
+        });
+
+        // Request Access Functionality
+        document.getElementById('requestAccessBtn').addEventListener('click', () => {
+            systemMessage("PENDING ACCESS REQUEST SENT TO ADMIN");
+            setTimeout(() => {
+                systemMessage("STATUS: TICKET_QUEUE_402");
+            }, 1500);
+        });
+
+        // Login Process
+        const loginForm = document.getElementById('loginForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Loading State
+            submitBtn.classList.add('loading');
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = "AUTHENTICATING...";
+            msg.innerText = "";
+
+            try {
+                // Simulate network delay
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Actual request logic
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: document.getElementById('username').value, 
+                        password: passInput.value 
+                    })
+                });
+
+                if (res.ok) {
+                    submitBtn.classList.remove('loading');
+                    submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> ACCESS GRANTED';
+                    submitBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.4)";
+                    systemMessage("HANDSHAKE COMPLETE. REDIRECTING...");
+                } else {
+                    throw new Error();
+                }
+            } catch (err) {
+                submitBtn.classList.remove('loading');
+                submitBtn.innerHTML = originalContent;
+                systemMessage("AUTHENTICATION_FAILED", 'error');
+            }
+        });
+    </script>
+</body>
+</html>
