@@ -1,9 +1,28 @@
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// --- DATABASE CONNECTION ---
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Could not connect to MongoDB:', err));
+
+// --- USER MODEL ---
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', userSchema);
 
 // Middleware
 app.use(bodyParser.json());
@@ -34,17 +53,69 @@ app.get('/docs', (req, res) => {
 
 // --- API ENDPOINTS ---
 
-// The Auth Handshake your Login.html is looking for
-app.post('/api/login', (req, res) => {
-    const { username, password } = req.body;
+// REGISTER ENDPOINT
+app.post('/api/register', async (req, res) => {
+    try {
+        const { username, password } = req.body;
 
-    // For now, using basic logic. Swap this with a DB check later!
-    if (username === 'admin' && password === 'xeno_secure_2026') {
+        // Validation
+        if (!username || !password) {
+            return res.status(400).json({ message: "MISSING_FIELDS" });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: "PASSWORD_TOO_SHORT" });
+        }
+
+        // Check for existing user
+        const existingUser = await User.findOne({ username });
+        if (existingUser) {
+            return res.status(409).json({ message: "IDENTITY_ALREADY_EXISTS" });
+        }
+
+        // Hash password
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Save user
+        const newUser = new User({
+            username,
+            password: hashedPassword
+        });
+
+        await newUser.save();
+        return res.status(201).json({ message: "IDENTITY_CREATED" });
+
+    } catch (error) {
+        console.error("Registration Error:", error);
+        return res.status(500).json({ message: "INTERNAL_SERVER_ERROR" });
+    }
+});
+
+// LOGIN ENDPOINT
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+
+        // Find user by username
+        const user = await User.findOne({ username });
+        if (!user) {
+            console.log(`Failed login attempt: ${username}`);
+            return res.status(401).json({ message: "AUTHENTICATION_FAILED" });
+        }
+
+        // Compare hashed password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            console.log(`Failed login attempt: ${username}`);
+            return res.status(401).json({ message: "AUTHENTICATION_FAILED" });
+        }
+
         console.log(`Access Granted to: ${username}`);
         return res.status(200).json({ message: "ACCESS_GRANTED" });
-    } else {
-        console.log(`Failed login attempt: ${username}`);
-        return res.status(401).json({ message: "AUTHENTICATION_FAILED" });
+
+    } catch (error) {
+        console.error("Login Error:", error);
+        return res.status(500).json({ message: "INTERNAL_SERVER_ERROR" });
     }
 });
 
