@@ -240,18 +240,241 @@
             position: relative;
             z-index: 5;
         }
+
+        /* --- SCI-FI INTRO ADDITIONS --- */
+        .intro-section {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: #050505;
+            z-index: 100;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .intro-visuals {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .intro-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            z-index: -1;
+            animation: introPulse 4s infinite ease-in-out;
+        }
+
+        @keyframes introPulse {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .intro-title-wrapper {
+            text-align: center;
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: introFadeUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 1.2s;
+        }
+
+        @keyframes introFadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .intro-title {
+            font-size: 5rem;
+            font-weight: 700;
+            letter-spacing: 0.5em;
+            color: #fff;
+            margin: 0;
+            position: relative;
+            text-indent: 0.5em; /* Offset for letter spacing centering */
+        }
+
+        .intro-subtitle {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-top: 10px;
+            opacity: 0;
+            animation: introFadeUp 1s forwards 1.5s;
+        }
+
+        .intro-initializing {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.2);
+            margin-top: 40px;
+            letter-spacing: 0.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            animation: introFadeUp 0.8s forwards 1.8s;
+        }
+
+        .intro-initializing::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            display: inline-block;
+            animation: statusBlink 1s infinite;
+        }
+
+        @keyframes statusBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .intro-system-stats {
+            position: absolute;
+            padding: 40px;
+            font-family: monospace;
+            font-size: 10px;
+            color: rgba(255,255,255,0.15);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            animation: fadeIn 2s forwards 2s;
+        }
+
+        .stat-tl { top: 0; left: 0; }
+        .stat-tr { top: 0; right: 0; text-align: right; }
+        .stat-bl { bottom: 0; left: 0; }
+        .stat-br { bottom: 0; right: 0; text-align: right; }
+
+        .scanline {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.05), transparent);
+            top: -5%;
+            animation: scanMove 4s linear infinite;
+        }
+
+        @keyframes scanMove {
+            0% { top: -5%; }
+            100% { top: 105%; }
+        }
+
+        .neural-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: fadeIn 1s forwards 2.5s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mouse-icon {
+            width: 20px;
+            height: 32px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .mouse-wheel {
+            width: 2px;
+            height: 6px;
+            background: #fff;
+            position: absolute;
+            left: 50%;
+            top: 6px;
+            transform: translateX(-50%);
+            animation: wheelScroll 2s infinite;
+        }
+
+        @keyframes wheelScroll {
+            0% { transform: translate(-50%, 0); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translate(-50%, 15px); opacity: 0; }
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* Noise Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC42NSIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNuKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==');
+            pointer-events: none;
+            z-index: 9999;
+        }
     </style>
 </head>
 <body>
 
+    <div class="noise-overlay"></div>
     <canvas id="matrix-bg"></canvas>
+
+    <section class="intro-section">
+        <canvas id="neural-canvas" class="neural-bg"></canvas>
+        <div class="scanline"></div>
+        <div class="intro-glow"></div>
+        
+        <div class="intro-system-stats">
+            <div class="stat-tl">SYS.VERSION 3.1.2<br>SYS.LOC: EDGE_NODE_01</div>
+            <div class="stat-tr">NODE CLUSTER ACTIVE<br>HANDSHAKE: ENCRYPTED</div>
+            <div class="stat-bl">LATENCY: 18ms<br>SYNC_STATUS: STABLE</div>
+            <div class="stat-br">SECURE CHANNEL ESTABLISHED<br>© 2026 SUPERXENO </div>
+        </div>
+
+        <div class="intro-title-wrapper" id="intro-tilt">
+            <h1 class="intro-title">SUPERXENO</h1>
+            <p class="intro-subtitle">Multi-Model Intelligence Engine</p>
+            <div class="intro-initializing">Initializing neural mesh...</div>
+        </div>
+
+        <div class="scroll-indicator">
+            <span style="font-size: 8px; letter-spacing: 0.3em; color: rgba(255,255,255,0.3); margin-bottom: 5px;">SCROLL TO INITIALIZE</span>
+            <div class="mouse-icon">
+                <div class="mouse-wheel"></div>
+            </div>
+        </div>
+    </section>
 
     <nav class="navbar">
         <div class="nav-logo">SuperXeno</div>
         <div class="nav-links">
-            <a href="#">Docs</a>
+            <a href="Docs.html">Docs</a>
             <a href="Updates.html">Updates</a>
-            <a href="#">Login</a>
+            <a href="Login.html">Login</a>
         </div>
     </nav>
 
@@ -514,6 +737,65 @@
     }
     setInterval(drawMatrix, 33);
 
+    // --- NEURAL NETWORK INTRO ANIMATION ---
+    const neuralCanvas = document.getElementById('neural-canvas');
+    const nCtx = neuralCanvas.getContext('2d');
+    let nodes = [];
+    
+    function initNeural() {
+        neuralCanvas.width = window.innerWidth;
+        neuralCanvas.height = window.innerHeight;
+        nodes = [];
+        for(let i = 0; i < 60; i++) {
+            nodes.push({
+                x: Math.random() * neuralCanvas.width,
+                y: Math.random() * neuralCanvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5
+            });
+        }
+    }
+
+    function drawNeural() {
+        nCtx.clearRect(0,0,neuralCanvas.width, neuralCanvas.height);
+        nCtx.strokeStyle = 'rgba(255,255,255,0.05)';
+        nCtx.fillStyle = 'rgba(255,255,255,0.2)';
+        
+        nodes.forEach((n, i) => {
+            n.x += n.vx;
+            n.y += n.vy;
+            if(n.x < 0 || n.x > neuralCanvas.width) n.vx *= -1;
+            if(n.y < 0 || n.y > neuralCanvas.height) n.vy *= -1;
+            
+            nCtx.beginPath();
+            nCtx.arc(n.x, n.y, 1.5, 0, Math.PI*2);
+            nCtx.fill();
+            
+            for(let j = i+1; j < nodes.length; j++) {
+                const dx = n.x - nodes[j].x;
+                const dy = n.y - nodes[j].y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < 150) {
+                    nCtx.beginPath();
+                    nCtx.moveTo(n.x, n.y);
+                    nCtx.lineTo(nodes[j].x, nodes[j].y);
+                    nCtx.stroke();
+                }
+            }
+        });
+        requestAnimationFrame(drawNeural);
+    }
+    initNeural();
+    drawNeural();
+
+    // Intro Title 3D Tilt
+    const introTilt = document.getElementById('intro-tilt');
+    document.addEventListener("mousemove", e => {
+        const x = (window.innerWidth / 2 - e.clientX) / 50;
+        const y = (window.innerHeight / 2 - e.clientY) / 50;
+        introTilt.style.transform = `rotateY(${x}deg) rotateX(${-y}deg)`;
+    });
+
     // Cursor Glow Tracking
     const glow = document.createElement("div");
     glow.className = "cursor-glow";
@@ -565,15 +847,30 @@
         container.appendChild(dot);
     }
 
-    // Scroll Reveal
+    // Scroll Reveal & Intro Fade
+    const introSection = document.querySelector('.intro-section');
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+        entries.forEach(entry => { 
+            if (entry.isIntersecting) entry.target.classList.add('active'); 
+        });
     }, { threshold: 0.1 });
+
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
+        const rate = scrolled / window.innerHeight;
+        // Fade out intro as user scrolls
+        if(rate <= 1) {
+            introSection.style.opacity = 1 - rate;
+            introSection.style.transform = `translateY(${-scrolled * 0.3}px)`;
+        }
+    });
     
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        initNeural();
     });
     </script>
 </body>
