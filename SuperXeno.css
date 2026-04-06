@@ -585,7 +585,11 @@ body::after {
     z-index: 1;
     width: 120px;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 1s var(--ease-premium) 1s;
 }
+
+.spawn-active .conn-line { opacity: 1; }
 .line-1 { top: 50%; left: 23%; transform: rotate(-8deg); }
 .line-2 { top: 50%; right: 23%; transform: rotate(8deg); }
 
@@ -600,7 +604,11 @@ body::after {
     background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%);
     z-index: -1;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 2s ease;
 }
+
+.spawn-active .hero-aura { opacity: 1; }
 
 /* F) Feature Hints / Tech Labels */
 .tech-label {
@@ -654,7 +662,97 @@ body::after {
     pointer-events: none;
 }
 
-/* Ensure Hero Grid allows absolute positioning for environment items */
+/* --- SPAWN ANIMATION SYSTEM (NEW) --- */
+
 .hero-grid {
     position: relative;
+}
+
+/* Pre-spawn state for both card types */
+.card.spawn, .side-card.spawn {
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(0.92) translateY(40px);
+    pointer-events: none;
+}
+
+/* Spawn Activation */
+.spawn-active .card.spawn, 
+.spawn-active .side-card.spawn {
+    opacity: 1;
+    filter: blur(0);
+    pointer-events: all;
+}
+
+/* Staggered Timing & Individual Tuning */
+.spawn-active .side-card.spawn:nth-child(1) {
+    transition: 
+        opacity 0.7s var(--ease-premium) 0.05s,
+        transform 0.7s var(--ease-premium) 0.05s,
+        filter 0.7s var(--ease-premium) 0.05s;
+    transform: scale(1) translateY(0);
+}
+
+.spawn-active .card.spawn {
+    animation: centerSpawnPulse 0.8s var(--ease-premium) 0.18s forwards;
+    z-index: 10;
+}
+
+.spawn-active .side-card.spawn:nth-child(3) {
+    transition: 
+        opacity 0.7s var(--ease-premium) 0.32s,
+        transform 0.7s var(--ease-premium) 0.32s,
+        filter 0.7s var(--ease-premium) 0.32s;
+    transform: scale(1) translateY(0);
+}
+
+/* The "Overshoot" & Flicker for Main Card */
+@keyframes centerSpawnPulse {
+    0% { opacity: 0; transform: scale(0.88) translateY(40px); filter: blur(6px); border-color: rgba(255,255,255,0.6); }
+    70% { opacity: 1; transform: scale(1.05) translateY(-5px); filter: blur(0); border-color: rgba(255,255,255,0.4); }
+    100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); border-color: rgba(255,0,0,0.3); }
+}
+
+/* Micro Icon Delay */
+.card.spawn .feature-icon, .side-card.spawn .feature-icon {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.5s var(--ease-premium);
+}
+
+.spawn-active .card.spawn .feature-icon, 
+.spawn-active .side-card.spawn .feature-icon {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.6s;
+}
+
+/* Scanline Effect on Spawn */
+.spawn-active .card.spawn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1), transparent);
+    height: 20%;
+    width: 100%;
+    z-index: 10;
+    animation: scanline 0.4s linear 0.2s forwards;
+    pointer-events: none;
+    opacity: 0;
+}
+
+@keyframes scanline {
+    0% { top: -20%; opacity: 1; }
+    100% { top: 120%; opacity: 0; }
+}
+
+/* Subtle Shimmer for Main Card */
+.spawn-active .card.spawn .card-shine {
+    animation: initialShimmer 1.5s var(--ease-premium) 0.5s forwards;
+}
+
+@keyframes initialShimmer {
+    0% { opacity: 0; left: -100%; }
+    50% { opacity: 0.2; }
+    100% { opacity: 0; left: 100%; }
 }
