@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
-const allowedOrigin = "https://xeno-bypass.vercel.app";
+const allowedOrigin = "https://superxeno-backend.vercel.app/";
 
 let isConnected = false;
 
