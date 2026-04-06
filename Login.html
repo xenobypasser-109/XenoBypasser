@@ -14,6 +14,7 @@
             --accent-white: #ffffff;
             --terminal-gray: rgba(255, 255, 255, 0.4);
             --bg-deep: #050505;
+	    --kp-DeepDark: #992023;
         }
 
         * {
@@ -315,48 +316,79 @@
                 <span><i class="fa-solid fa-bolt"></i> LAT: 24MS</span>
             </div>
 
-            <h2>LOGIN</h2>
+            <div id="form-container">
+                <div id="login-section">
+                    <h2>LOGIN</h2>
+                    <form id="loginForm">
+                        <div class="input-box">
+                            <i class="fa-solid fa-envelope"></i>
+                            <input type="text" id="username" placeholder="EMAIL / USERNAME" required autocomplete="off">
+                            <span class="valid-mark"><i class="fa-solid fa-check"></i></span>
+                        </div>
+                        
+                        <div class="input-box">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="password" placeholder="PASSWORD" required>
+                            <button type="button" class="toggle-btn showPassBtn">
+                                <i class="fa-solid fa-eye"></i> <span class="toggleText">SHOW</span>
+                            </button>
+                        </div>
+
+                        <div class="form-utils">
+                            <label class="remember-wrap">
+                                <input type="checkbox"> REMEMBER SESSION
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn" id="submitBtn">
+                            <i class="fa-solid fa-right-to-bracket"></i> CONTINUE
+                        </button>
+                    </form>
+                </div>
+
+                <div id="register-section" style="display: none;">
+                    <h2>REGISTER</h2>
+                    <form id="registerForm">
+                        <div class="input-box">
+                            <i class="fa-solid fa-user"></i>
+                            <input type="text" id="reg-username" placeholder="EMAIL / USERNAME" required autocomplete="off">
+                            <span class="valid-mark"><i class="fa-solid fa-check"></i></span>
+                        </div>
+                        
+                        <div class="input-box">
+                            <i class="fa-solid fa-lock"></i>
+                            <input type="password" id="reg-password" placeholder="PASSWORD" required>
+                            <button type="button" class="toggle-btn showPassBtn">
+                                <i class="fa-solid fa-eye"></i> <span class="toggleText">SHOW</span>
+                            </button>
+                        </div>
+
+                        <div class="input-box">
+                            <i class="fa-solid fa-shield-check"></i>
+                            <input type="password" id="reg-confirm" placeholder="CONFIRM PASSWORD" required>
+                        </div>
+
+                        <button type="submit" class="btn" id="regSubmitBtn">
+                            <i class="fa-solid fa-user-plus"></i> CREATE IDENTITY
+                        </button>
+                    </form>
+                </div>
+            </div>
             
-            <form id="loginForm">
-                <div class="input-box">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="text" id="username" placeholder="EMAIL / USERNAME" required autocomplete="off">
-                    <span class="valid-mark"><i class="fa-solid fa-check"></i></span>
-                </div>
-                
-                <div class="input-box">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="password" placeholder="PASSWORD" required>
-                    <button type="button" class="toggle-btn" id="showPass">
-                        <i class="fa-solid fa-eye"></i> <span id="toggleText">SHOW</span>
-                    </button>
-                </div>
+            <div id="message"></div>
 
-                <div class="form-utils">
-                    <label class="remember-wrap">
-                        <input type="checkbox"> REMEMBER SESSION
-                    </label>
-                </div>
+            <div class="trust-elements">
+                • SECURE CONNECTION • DATA ENCRYPTED • PRIVACY PROTECTED
+            </div>
 
-                <button type="submit" class="btn" id="submitBtn">
-                    <i class="fa-solid fa-right-to-bracket"></i> CONTINUE
-                </button>
-                
-                <div id="message"></div>
-
-                <div class="trust-elements">
-                    • SECURE CONNECTION • DATA ENCRYPTED • PRIVACY PROTECTED
-                </div>
-
-                <div class="secondary-actions">
-                    <a href="javascript:void(0)" id="requestAccessBtn">
-                        <i class="fa-solid fa-key"></i> REQUEST ACCESS
-                    </a>
-                    <a href="javascript:void(0)" id="createAccountBtn">
-                        <i class="fa-solid fa-user-plus"></i> CREATE ACCOUNT
-                    </a>
-                </div>
-            </form>
+            <div class="secondary-actions">
+                <a href="javascript:void(0)" id="requestAccessBtn">
+                    <i class="fa-solid fa-key"></i> REQUEST ACCESS
+                </a>
+                <a href="javascript:void(0)" id="createAccountBtn">
+                    <i class="fa-solid fa-user-plus"></i> CREATE ACCOUNT
+                </a>
+            </div>
         </div>
     </div>
 
@@ -439,21 +471,23 @@
         refreshInteractiveListeners();
 
         // --- 3. PASSWORD TOGGLE ---
-        const passInput = document.getElementById("password");
-        const showBtn = document.getElementById("showPass");
-        const toggleText = document.getElementById("toggleText");
-
-        showBtn.addEventListener("click", () => {
-            const icon = showBtn.querySelector('i');
-            if (passInput.type === "password") {
-                passInput.type = "text"; 
-                toggleText.innerText = "HIDE";
-                icon.className = "fa-solid fa-eye-slash";
-            } else {
-                passInput.type = "password"; 
-                toggleText.innerText = "SHOW";
-                icon.className = "fa-solid fa-eye";
-            }
+        document.querySelectorAll(".showPassBtn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const parent = btn.closest('.input-box');
+                const input = parent.querySelector('input');
+                const text = btn.querySelector('.toggleText');
+                const icon = btn.querySelector('i');
+                
+                if (input.type === "password") {
+                    input.type = "text"; 
+                    text.innerText = "HIDE";
+                    icon.className = "fa-solid fa-eye-slash";
+                } else {
+                    input.type = "password"; 
+                    text.innerText = "SHOW";
+                    icon.className = "fa-solid fa-eye";
+                }
+            });
         });
 
         window.addEventListener('resize', initCanvas);
@@ -470,12 +504,24 @@
             }
         };
 
-        // Create Account Functionality
+        // Create Account Switcher
         document.getElementById('createAccountBtn').addEventListener('click', () => {
-            systemMessage("INITIALIZING REGISTRATION PROTOCOL...");
-            setTimeout(() => {
-                systemMessage("EXTERNAL_REDIRECT: NO_SIGNUP_SERVER");
-            }, 1000);
+            const loginSec = document.getElementById('login-section');
+            const regSec = document.getElementById('register-section');
+            
+            if(regSec.style.display === 'none') {
+                systemMessage("INITIALIZING REGISTRATION PROTOCOL...");
+                setTimeout(() => {
+                    loginSec.style.display = 'none';
+                    regSec.style.display = 'block';
+                    document.getElementById('createAccountBtn').innerHTML = '<i class="fa-solid fa-arrow-left"></i> BACK TO LOGIN';
+                }, 800);
+            } else {
+                regSec.style.display = 'none';
+                loginSec.style.display = 'block';
+                document.getElementById('createAccountBtn').innerHTML = '<i class="fa-solid fa-user-plus"></i> CREATE ACCOUNT';
+                msg.innerText = "";
+            }
         });
 
         // Request Access Functionality
@@ -486,30 +532,25 @@
             }, 1500);
         });
 
-        // Login Process
+        // LOGIN SUBMIT
         const loginForm = document.getElementById('loginForm');
         const submitBtn = document.getElementById('submitBtn');
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // Loading State
             submitBtn.classList.add('loading');
             const originalContent = submitBtn.innerHTML;
             submitBtn.innerHTML = "AUTHENTICATING...";
             msg.innerText = "";
 
             try {
-                // Simulate network delay
                 await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // Actual request logic
                 const res = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         username: document.getElementById('username').value, 
-                        password: passInput.value 
+                        password: document.getElementById('password').value 
                     })
                 });
 
@@ -525,6 +566,50 @@
                 submitBtn.classList.remove('loading');
                 submitBtn.innerHTML = originalContent;
                 systemMessage("AUTHENTICATION_FAILED", 'error');
+            }
+        });
+
+        // REGISTER SUBMIT
+        const regForm = document.getElementById('registerForm');
+        const regSubmitBtn = document.getElementById('regSubmitBtn');
+
+        regForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('reg-username').value;
+            const pass = document.getElementById('reg-password').value;
+            const confirm = document.getElementById('reg-confirm').value;
+
+            if (pass !== confirm) {
+                systemMessage("PASSWORD_MISMATCH", "error");
+                return;
+            }
+
+            regSubmitBtn.classList.add('loading');
+            const originalContent = regSubmitBtn.innerHTML;
+            regSubmitBtn.innerHTML = "CREATING IDENTITY...";
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                if (res.status === 200 || res.status === 201) {
+                    regSubmitBtn.classList.remove('loading');
+                    regSubmitBtn.innerHTML = '<i class="fa-solid fa-check"></i> IDENTITY CREATED';
+                    systemMessage("IDENTITY_CREATED. REDIRECTING...");
+                    setTimeout(() => window.location.href = "/docs", 1500);
+                } else if (res.status === 409) {
+                    throw new Error("IDENTITY_ALREADY_EXISTS");
+                } else {
+                    throw new Error("REGISTRATION_FAILED");
+                }
+            } catch (err) {
+                regSubmitBtn.classList.remove('loading');
+                regSubmitBtn.innerHTML = originalContent;
+                systemMessage(err.message || "REGISTRATION_FAILED", 'error');
             }
         });
     </script>
