@@ -27,6 +27,11 @@ app.get('/updates', (req, res) => {
     res.sendFile(path.join(__dirname, 'Updates.html'));
 });
 
+// Serve the Docs page
+app.get('/docs', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Docs.html'));
+});
+
 // --- API ENDPOINTS ---
 
 // The Auth Handshake your Login.html is looking for
@@ -42,6 +47,13 @@ app.post('/api/login', (req, res) => {
         return res.status(401).json({ message: "AUTHENTICATION_FAILED" });
     }
 });
+
+// START SERVER FOR LOCAL DEVELOPMENT
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+}
 
 // VERCEL EXPORT
 module.exports = app;
