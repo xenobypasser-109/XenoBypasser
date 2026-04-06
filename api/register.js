@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
+const allowedOrigin = "https://xeno-bypass.vercel.app";
+
 let isConnected = false;
 
 async function connectDB() {
   if (isConnected) return;
-
   await mongoose.connect(process.env.MONGO_URI);
   isConnected = true;
 }
@@ -21,8 +22,17 @@ const User =
 
 export default async function handler(req, res) {
 
-  if (req.method !== "POST")
+  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  if (req.method !== "POST") {
     return res.status(405).end();
+  }
 
   await connectDB();
 
@@ -30,10 +40,11 @@ export default async function handler(req, res) {
 
   const existing = await User.findOne({ username });
 
-  if (existing)
+  if (existing) {
     return res.status(409).json({
       message: "IDENTITY_ALREADY_EXISTS"
     });
+  }
 
   const hash = await bcrypt.hash(password, 10);
 
