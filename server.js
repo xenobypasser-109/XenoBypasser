@@ -43,11 +43,5 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`
-    -------------------------------------------
-    SUPERXENO INTELLIGENCE ENGINE ACTIVE
-    LOCALLY HOSTED AT: http://localhost:${PORT}
-    -------------------------------------------
-    `);
-});
+// VERCEL EXPORT
+module.exports = app;
