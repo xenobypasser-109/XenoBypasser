@@ -7,14 +7,28 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// --- DATABASE CONNECTION ---
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('Could not connect to MongoDB:', err));
+// --- DATABASE CONNECTION (SERVERLESS READY) ---
+let isConnected = false;
+
+async function connectDB() {
+    if (isConnected) {
+        return;
+    }
+
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        isConnected = true;
+        console.log("Connected to MongoDB");
+    } catch (err) {
+        console.error("MongoDB connection error:", err);
+    }
+}
+
+// Initial connection attempt for non-serverless environments
+connectDB();
 
 // --- USER MODEL ---
 const userSchema = new mongoose.Schema({
@@ -56,6 +70,7 @@ app.get('/docs', (req, res) => {
 
 // REGISTER ENDPOINT
 app.post('/api/register', async (req, res) => {
+    await connectDB();
     try {
         const { username, password } = req.body;
 
@@ -94,6 +109,7 @@ app.post('/api/register', async (req, res) => {
 
 // LOGIN ENDPOINT
 app.post('/api/login', async (req, res) => {
+    await connectDB();
     try {
         const { username, password } = req.body;
 
